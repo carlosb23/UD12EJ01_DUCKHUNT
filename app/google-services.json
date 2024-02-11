@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "725992970563",
+    "project_id": "ud12ej01-carlos-bustos",
+    "storage_bucket": "ud12ej01-carlos-bustos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725992970563:android:ba34c3c918bbbd0f2137f6",
+        "android_client_info": {
+          "package_name": "com.example.ud12ej01_carlosbustos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd3cMAG3oamlrdtZwxrpaCjxNFHX1ZT3c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
