@@ -70,7 +70,7 @@ class RankingActivity: AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
 
         // Obtener el puntaje del usuario actual desde Firebase Firestore
-        db.collection("puntuajes")
+        db.collection("puntuaciones")
             .document(nick)
             .get()
             .addOnSuccessListener { document ->
@@ -90,7 +90,7 @@ class RankingActivity: AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
 
         // Ordenar y recuperar las mejores 5 puntuaciones
-        db.collection("puntuajes")
+        db.collection("puntuaciones")
             .orderBy("puntos", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(5)
             .get()

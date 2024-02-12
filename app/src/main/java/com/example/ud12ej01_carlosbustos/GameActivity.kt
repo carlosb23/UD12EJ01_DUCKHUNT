@@ -13,6 +13,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import com.example.ud12ej01_carlosbustos.databinding.ActivityGameBinding
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Random
 
@@ -92,6 +93,11 @@ class GameActivity : AppCompatActivity() {
         //Utilizamos los números aleatorios para mover el pato
         binding.ivPato.x = randomX.toFloat()
         binding.ivPato.y = randomY.toFloat()
+
+        // Agregar un retraso antes de mostrar el pato nuevamente
+        Handler().postDelayed({
+            // Código para mostrar el pato nuevamente después de un retraso
+        }, 500)
     }
 
     private fun initCuentaAtras(){
@@ -105,27 +111,55 @@ class GameActivity : AppCompatActivity() {
                 binding.tvTimer.text = getString(R.string.ceroseg)
                 gameOver = true
 
-                // Guardar el puntaje del jugador en Cloud Firestore
+                // Obtener el puntaje del usuario actual desde Firebase Firestore
                 val db = FirebaseFirestore.getInstance()
-                val nombre = binding.tvNick.text.toString()
-                val puntos = cazados
+                val usuarioRef = db.collection("puntuaciones").document(nick)
 
-                // Crea un nuevo documento con el nick del jugador como identificador
-                db.collection("puntuajes")
-                    .document(nick)
-                    .set(Usuario(nombre, puntos))
-                    .addOnSuccessListener {
-                        // Iniciar la actividad de Ranking
-                        val intent = Intent(this@GameActivity, RankingActivity::class.java)
-                        intent.putExtra(Constantes.EXTRA_NICK, nick) // Aquí pasamos el nick como extra
-                        intent.putExtra(Constantes.EXTRA_PUNTOS, cazados) //Aqui pasamos los puntos de ese usuario
-                        startActivity(intent)
+                usuarioRef.get().addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        // El usuario existe en la base de datos, obtener su puntaje actual
+                        val usuario = documentSnapshot.toObject(Usuario::class.java)
+                        val puntajeActual = usuario?.puntos ?: 0
+                        guardarPuntajeSiEsMayor(usuarioRef, puntajeActual)
+                    } else {
+                        // El usuario no existe en la base de datos, crear un nuevo documento con puntaje inicial de cero
+                        usuarioRef.set(Usuario(nick, 0))
+                            .addOnSuccessListener {
+                                // Guardar el puntaje del jugador en Cloud Firestore
+                                guardarPuntajeSiEsMayor(usuarioRef, 0)
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, "Error creating user document", e)
+                            }
                     }
+                }
                     .addOnFailureListener { e ->
-                        Log.w(TAG, "Error writing document", e)
+                        Log.e(TAG, "Error getting user document", e)
                     }
             }
         }.start()
+    }
+
+    private fun guardarPuntajeSiEsMayor(usuarioRef: DocumentReference, puntajeActual: Long) {
+        if (cazados > puntajeActual) {
+            usuarioRef.update("puntos", cazados)
+                .addOnSuccessListener {
+                    // Iniciar la actividad de Ranking
+                    val intent = Intent(this@GameActivity, RankingActivity::class.java)
+                    intent.putExtra(Constantes.EXTRA_NICK, nick)
+                    intent.putExtra(Constantes.EXTRA_PUNTOS, cazados)
+                    startActivity(intent)
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Error updating user score", e)
+                }
+        } else {
+            // Si no supera el puntaje actual, simplemente iniciar la actividad de Ranking
+            val intent = Intent(this@GameActivity, RankingActivity::class.java)
+            intent.putExtra(Constantes.EXTRA_NICK, nick)
+            intent.putExtra(Constantes.EXTRA_PUNTOS, puntajeActual) // Pasar el puntaje actual
+            startActivity(intent)
+        }
     }
 
 
